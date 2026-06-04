@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://bm3w72hr6hrdx"]
+
+[ext_resource type="Script" uid="uid://dg6ckcoimqwn3" path="res://scripts/player_controller.gd" id="1_arwpk"]
+[ext_resource type="Script" uid="uid://bv2o4tnpeqdb7" path="res://scripts/camera_controller.gd" id="2_mjwi7"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_81ok0"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_dhhuj"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qmmko"]
+albedo_color = Color(1, 0, 0, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_0yqwy"]
+material = SubResource("StandardMaterial3D_qmmko")
+
+[node name="Player" type="CharacterBody3D" unique_id=1328698186]
+script = ExtResource("1_arwpk")
+
+[node name="Collider" type="CollisionShape3D" parent="." unique_id=504925777]
+shape = SubResource("CapsuleShape3D_81ok0")
+
+[node name="ModelPivot" type="Node3D" parent="." unique_id=1473653677]
+
+[node name="Body" type="MeshInstance3D" parent="ModelPivot" unique_id=875151287]
+mesh = SubResource("CapsuleMesh_dhhuj")
+
+[node name="Eyes" type="MeshInstance3D" parent="ModelPivot" unique_id=626111169]
+transform = Transform3D(0.3252976, 0, 0, 0, 0.20041364, 0, 0, 0, 0.25306842, 0, 0.51605433, -0.526561)
+mesh = SubResource("BoxMesh_0yqwy")
+
+[node name="CameraPivot" type="Node3D" parent="." unique_id=212076164]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+script = ExtResource("2_mjwi7")
+
+[node name="CameraPitch" type="Node3D" parent="CameraPivot" unique_id=1471377136]
+
+[node name="CameraHolder" type="Node3D" parent="CameraPivot/CameraPitch" unique_id=1590786180]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0, 4)
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/CameraPitch/CameraHolder" unique_id=672532831]
+current = true

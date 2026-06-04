@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://ymkpsg032x3p"]
+
+[ext_resource type="Texture2D" uid="uid://ce5mf75mwipab" path="res://assets/third_party/Kenney_Textures/PNG/Dark/texture_01.png" id="1_1mta8"]
+[ext_resource type="Material" uid="uid://by5qn4hxd164i" path="res://assets/textures/prototype_dark_1.tres" id="2_1mta8"]
+[ext_resource type="PackedScene" uid="uid://bm3w72hr6hrdx" path="res://scenes/PlayerV1.tscn" id="3_1mta8"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_a7ptu"]
+
+[sub_resource type="Sky" id="Sky_1rpmt"]
+sky_material = SubResource("ProceduralSkyMaterial_a7ptu")
+
+[sub_resource type="Environment" id="Environment_2e8n3"]
+background_mode = 2
+sky = SubResource("Sky_1rpmt")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7cuds"]
+albedo_texture = ExtResource("1_1mta8")
+uv1_triplanar = true
+
+[node name="Root" type="Node3D" unique_id=103305538]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1572902309]
+environment = SubResource("Environment_2e8n3")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment" unique_id=1599435193]
+transform = Transform3D(1, 0, 0, 0, 0.18209825, 0.98328036, 0, -0.98328036, 0.18209825, 0, 9.64345, 0)
+
+[node name="Environment" type="CSGCombiner3D" parent="." unique_id=1049922545]
+use_collision = true
+
+[node name="Ground" type="CSGBox3D" parent="Environment" unique_id=37633461]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.230782, 0)
+size = Vector3(50, 16.711563, 50)
+material = SubResource("StandardMaterial3D_7cuds")
+
+[node name="SubGround" type="CSGBox3D" parent="Environment" unique_id=1022364266]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.022658348, 8.826752, -0.013214111)
+operation = 2
+size = Vector3(48, 17.496582, 48)
+material = ExtResource("2_1mta8")
+
+[node name="Player" parent="." unique_id=1328698186 instance=ExtResource("3_1mta8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5697174, 1.2842667, -0.057038307)
