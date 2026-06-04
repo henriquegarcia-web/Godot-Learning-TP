@@ -1,5 +1,6 @@
 extends CharacterBody3D
 
+
 # =============================================================================
 # EXPORTS | MOVIMENTAÇÃO
 # -----------------------------------------------------------------------------
@@ -9,9 +10,11 @@ extends CharacterBody3D
 @export_group("Movement")
 @export var walk_speed: float = 5.0
 @export var sprint_speed: float = 8.0
+@export var stealth_speed: float = 2.5
 @export var acceleration: float = 14.0
 @export var deceleration: float = 18.0
 @export var rotation_speed: float = 12.0
+
 
 # =============================================================================
 # EXPORTS | PULO E GRAVIDADE
@@ -23,26 +26,82 @@ extends CharacterBody3D
 @export var jump_velocity: float = 5.5
 @export var gravity: float = 20.0
 
+
 # =============================================================================
 # REFERÊNCIAS DE NÓS
 # -----------------------------------------------------------------------------
-# Cache dos nós usados para girar o modelo e orientar movimento pela câmera.
+# Cache dos nós usados para modelo, câmera e StateMachine.
 # =============================================================================
 
 @onready var model_pivot: Node3D = $ModelPivot
 @onready var camera_rig: Node3D = $CameraPivot
+@onready var movement_state_machine: PlayerMovementStateMachine = $StateMachine
+
+
+# =============================================================================
+# ESTADO INTERNO | INPUT
+# -----------------------------------------------------------------------------
+# Guarda o input atual usado pelos estados de movimento.
+# =============================================================================
+
+var movement_input: Vector2 = Vector2.ZERO
+var movement_direction: Vector3 = Vector3.ZERO
+
+var is_jump_requested: bool = false
+var is_sprint_pressed: bool = false
+var is_stealth_pressed: bool = false
+
 
 # =============================================================================
 # LOOP FÍSICO | CONTROLE PRINCIPAL DO PLAYER
 # -----------------------------------------------------------------------------
-# Atualiza gravidade, pulo, movimento e aplica move_and_slide.
+# Atualiza input, gravidade, estado atual e movimento final.
 # =============================================================================
 
 func _physics_process(delta: float) -> void:
+	_update_movement_input()
 	_apply_gravity(delta)
-	_handle_jump()
-	_handle_movement(delta)
+	movement_state_machine.physics_update(delta)
 	move_and_slide()
+
+
+# =============================================================================
+# INPUT | LEITURA DO MOVIMENTO
+# -----------------------------------------------------------------------------
+# Lê movimento, sprint, stealth e calcula direção baseada na câmera.
+# =============================================================================
+
+func _update_movement_input() -> void:
+	movement_input = Input.get_vector(
+		"move_left",
+		"move_right",
+		"move_forward",
+		"move_back"
+	)
+
+	is_jump_requested = Input.is_action_just_pressed("jump")
+	is_sprint_pressed = Input.is_action_pressed("sprint")
+	is_stealth_pressed = Input.is_action_pressed("stealth")
+
+	movement_direction = Vector3.ZERO
+
+	if movement_input.length() <= 0.0:
+		return
+
+	var camera_basis := camera_rig.global_transform.basis
+
+	var forward := -camera_basis.z
+	var right := camera_basis.x
+
+	forward.y = 0.0
+	right.y = 0.0
+
+	forward = forward.normalized()
+	right = right.normalized()
+
+	# Mantém a correção do W/S invertido.
+	movement_direction = ((right * movement_input.x) + (forward * -movement_input.y)).normalized()
+
 
 # =============================================================================
 # FÍSICA | GRAVIDADE
@@ -56,59 +115,20 @@ func _apply_gravity(delta: float) -> void:
 	elif velocity.y < 0.0:
 		velocity.y = -0.1
 
+
 # =============================================================================
-# FÍSICA | PULO
+# MOVIMENTO | APLICAÇÃO HORIZONTAL
 # -----------------------------------------------------------------------------
-# Aplica velocidade vertical quando a ação de pulo é pressionada no chão.
+# Aplica aceleração/desaceleração usando a direção e velocidade do estado atual.
 # =============================================================================
 
-func _handle_jump() -> void:
-	if Input.is_action_just_pressed("jump") and is_on_floor():
-		velocity.y = jump_velocity
-
-# =============================================================================
-# MOVIMENTO | DIREÇÃO, VELOCIDADE E ACELERAÇÃO
-# -----------------------------------------------------------------------------
-# Lê input, calcula direção baseada na câmera, aplica aceleração/desaceleração
-# e gira o modelo visual na direção do movimento.
-# =============================================================================
-
-func _handle_movement(delta: float) -> void:
-	var input_vector := Input.get_vector(
-		"move_left",
-		"move_right",
-		"move_forward",
-		"move_back"
-	)
-
-	var direction := Vector3.ZERO
-
-	if input_vector.length() > 0.0:
-		var camera_basis := camera_rig.global_transform.basis
-
-		var forward := -camera_basis.z
-		var right := camera_basis.x
-
-		forward.y = 0.0
-		right.y = 0.0
-
-		forward = forward.normalized()
-		right = right.normalized()
-
-		# Mantém a correção do W/S invertido.
-		direction = ((right * input_vector.x) + (forward * -input_vector.y)).normalized()
-
-	var target_speed := walk_speed
-
-	if Input.is_action_pressed("sprint"):
-		target_speed = sprint_speed
-
-	var target_velocity := direction * target_speed
+func apply_horizontal_movement(target_speed: float, delta: float) -> void:
+	var target_velocity := movement_direction * target_speed
 	var current_horizontal_velocity := Vector3(velocity.x, 0.0, velocity.z)
 
 	var smooth_factor := acceleration
 
-	if direction == Vector3.ZERO:
+	if movement_direction == Vector3.ZERO:
 		smooth_factor = deceleration
 
 	current_horizontal_velocity = current_horizontal_velocity.move_toward(
@@ -119,8 +139,23 @@ func _handle_movement(delta: float) -> void:
 	velocity.x = current_horizontal_velocity.x
 	velocity.z = current_horizontal_velocity.z
 
-	if direction != Vector3.ZERO:
-		_rotate_model_towards(direction, delta)
+	if movement_direction != Vector3.ZERO:
+		_rotate_model_towards(movement_direction, delta)
+
+
+# =============================================================================
+# CONSULTORES | INPUT
+# -----------------------------------------------------------------------------
+# Facilita a leitura dos estados sem repetir regras.
+# =============================================================================
+
+func has_movement_input() -> bool:
+	return movement_direction != Vector3.ZERO
+
+
+func should_jump() -> bool:
+	return is_jump_requested and is_on_floor()
+
 
 # =============================================================================
 # MODELO | ROTAÇÃO VISUAL DO PERSONAGEM

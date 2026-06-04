@@ -2,6 +2,13 @@
 
 [ext_resource type="Script" uid="uid://dg6ckcoimqwn3" path="res://scripts/player_controller.gd" id="1_arwpk"]
 [ext_resource type="Script" uid="uid://bv2o4tnpeqdb7" path="res://scripts/camera_controller.gd" id="2_mjwi7"]
+[ext_resource type="Script" uid="uid://bgl6l5ikhtp5k" path="res://scripts/state_machine/player_movement_state_machine.gd" id="3_cemdl"]
+[ext_resource type="Script" uid="uid://cmjrq0x7vycmo" path="res://scripts/states/idle.gd" id="4_s5wcu"]
+[ext_resource type="Script" uid="uid://tjlbu48ytsb8" path="res://scripts/states/walk.gd" id="5_kvolm"]
+[ext_resource type="Script" uid="uid://b8erjr8rdmnm8" path="res://scripts/states/sprint.gd" id="6_2qbuf"]
+[ext_resource type="Script" uid="uid://trc58bh51yn7" path="res://scripts/states/stealth.gd" id="7_iemd8"]
+[ext_resource type="Script" uid="uid://cyp15xc73e5pa" path="res://scripts/states/jump.gd" id="8_b4pbf"]
+[ext_resource type="Script" uid="uid://csdpdl28m61j3" path="res://scripts/states/fall.gd" id="9_nuc4e"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_81ok0"]
 
@@ -39,3 +46,24 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0, 4)
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot/CameraPitch/CameraHolder" unique_id=672532831]
 current = true
+
+[node name="StateMachine" type="Node" parent="." unique_id=1596660505]
+script = ExtResource("3_cemdl")
+
+[node name="Idle" type="Node" parent="StateMachine" unique_id=1190779820]
+script = ExtResource("4_s5wcu")
+
+[node name="Walk" type="Node" parent="StateMachine" unique_id=1495157427]
+script = ExtResource("5_kvolm")
+
+[node name="Sprint" type="Node" parent="StateMachine" unique_id=692480904]
+script = ExtResource("6_2qbuf")
+
+[node name="Stealth" type="Node" parent="StateMachine" unique_id=877391842]
+script = ExtResource("7_iemd8")
+
+[node name="Jump" type="Node" parent="StateMachine" unique_id=703379833]
+script = ExtResource("8_b4pbf")
+
+[node name="Fall" type="Node" parent="StateMachine" unique_id=13318369]
+script = ExtResource("9_nuc4e")

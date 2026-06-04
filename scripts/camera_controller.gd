@@ -30,13 +30,13 @@ extends Node3D
 # =============================================================================
 # EXPORTS | ZOOM DA CÂMERA
 # -----------------------------------------------------------------------------
-# Controla o zoom ao pressionar botão direito, aproximando a câmera e reduzindo
-# o FOV para criar sensação de foco/mira.
+# Controla o zoom manual, com foco maior parado/stealth e menor ao andar.
 # =============================================================================
 
 @export_group("Camera Zoom")
 @export var zoom_enabled: bool = true
-@export var zoom_distance: float = 3.5
+@export var zoom_focus_distance: float = 3.5
+@export var zoom_walk_distance: float = 3.75
 @export var zoom_fov: float = 55.0
 @export var normal_fov: float = 70.0
 @export var zoom_speed: float = 12.0
@@ -94,11 +94,12 @@ extends Node3D
 # =============================================================================
 # REFERÊNCIAS DE NÓS
 # -----------------------------------------------------------------------------
-# Cache dos nós principais da hierarquia do player/câmera.
+# Cache dos nós principais da hierarquia do player, câmera e StateMachine.
 # =============================================================================
 
 @onready var player_body: CharacterBody3D = get_parent() as CharacterBody3D
 @onready var model_pivot: Node3D = $"../ModelPivot"
+@onready var movement_state_machine: PlayerMovementStateMachine = get_node_or_null("../StateMachine") as PlayerMovementStateMachine
 
 @onready var camera_pitch: Node3D = $CameraPitch
 @onready var camera_holder: Node3D = $CameraPitch/CameraHolder
@@ -224,12 +225,12 @@ func _update_camera_rotation(_delta: float) -> void:
 # =============================================================================
 # CÂMERA | EFEITOS DE DISTÂNCIA E FOV
 # -----------------------------------------------------------------------------
-# Controla os efeitos visuais de aproximação e afastamento da câmera.
+# Controla aproximação por zoom e afastamento ao correr.
 #
 # Prioridade:
-# 1. Zoom manual com botão direito.
-# 2. Distanciamento automático ao correr de verdade.
-# 3. Estado normal da câmera.
+# 1. Distanciamento automático ao correr.
+# 2. Zoom manual se não estiver correndo.
+# 3. Estado normal.
 # =============================================================================
 
 func _update_camera_distance_effects(delta: float) -> void:
@@ -237,14 +238,14 @@ func _update_camera_distance_effects(delta: float) -> void:
 	var target_fov: float = normal_fov
 	var target_speed: float = zoom_speed
 
-	if zoom_enabled and is_zooming:
-		target_distance = zoom_distance
-		target_fov = zoom_fov
-		target_speed = zoom_speed
-	elif sprint_camera_enabled and _is_player_actually_sprinting():
+	if sprint_camera_enabled and _is_player_actually_sprinting():
 		target_distance = sprint_camera_distance
 		target_fov = sprint_camera_fov
 		target_speed = sprint_camera_speed
+	elif zoom_enabled and is_zooming:
+		target_distance = _get_zoom_target_distance()
+		target_fov = zoom_fov
+		target_speed = zoom_speed
 
 	var weight: float = _get_smooth_weight(target_speed, delta)
 
@@ -261,26 +262,37 @@ func _update_camera_distance_effects(delta: float) -> void:
 	)
 
 # =============================================================================
+# CÂMERA | DISTÂNCIA DO ZOOM POR ESTADO
+# -----------------------------------------------------------------------------
+# Define o nível de foco do zoom com base no estado atual do player.
+# =============================================================================
+
+func _get_zoom_target_distance() -> float:
+	if movement_state_machine == null:
+		return zoom_focus_distance
+
+	if movement_state_machine.is_idle():
+		return zoom_focus_distance
+
+	if movement_state_machine.is_stealthing():
+		return zoom_focus_distance
+
+	if movement_state_machine.is_walking():
+		return zoom_walk_distance
+
+	return zoom_focus_distance
+
+# =============================================================================
 # CÂMERA | DETECÇÃO DE CORRIDA REAL
 # -----------------------------------------------------------------------------
-# Verifica se o player está pressionando sprint e se existe movimento horizontal
-# suficiente para ativar o efeito de distanciamento da câmera.
+# Consulta a StateMachine para bloquear zoom e aplicar afastamento ao correr.
 # =============================================================================
 
 func _is_player_actually_sprinting() -> bool:
-	if player_body == null:
+	if movement_state_machine == null:
 		return false
 
-	if not Input.is_action_pressed("sprint"):
-		return false
-
-	var horizontal_velocity: Vector3 = Vector3(
-		player_body.velocity.x,
-		0.0,
-		player_body.velocity.z
-	)
-
-	return horizontal_velocity.length() > sprint_camera_min_movement_speed
+	return movement_state_machine.is_sprinting()
 
 # =============================================================================
 # CÂMERA | OMBRO
