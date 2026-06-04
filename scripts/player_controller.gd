@@ -11,6 +11,8 @@ extends CharacterBody3D
 @export var walk_speed: float = 5.0
 @export var sprint_speed: float = 8.0
 @export var stealth_speed: float = 2.5
+@export var aim_walk_speed: float = 3.25
+@export var aim_stealth_speed: float = 2.0
 @export var acceleration: float = 14.0
 @export var deceleration: float = 18.0
 @export var rotation_speed: float = 12.0
@@ -30,12 +32,13 @@ extends CharacterBody3D
 # =============================================================================
 # REFERÊNCIAS DE NÓS
 # -----------------------------------------------------------------------------
-# Cache dos nós usados para modelo, câmera e StateMachine.
+# Cache dos nós usados para modelo, câmera, estados e status.
 # =============================================================================
 
 @onready var model_pivot: Node3D = $ModelPivot
 @onready var camera_rig: Node3D = $CameraPivot
 @onready var movement_state_machine: PlayerMovementStateMachine = $StateMachine
+@onready var status_manager: PlayerStatusManager = $StatusManager
 
 
 # =============================================================================
@@ -50,16 +53,18 @@ var movement_direction: Vector3 = Vector3.ZERO
 var is_jump_requested: bool = false
 var is_sprint_pressed: bool = false
 var is_stealth_pressed: bool = false
+var is_aim_pressed: bool = false
 
 
 # =============================================================================
 # LOOP FÍSICO | CONTROLE PRINCIPAL DO PLAYER
 # -----------------------------------------------------------------------------
-# Atualiza input, gravidade, estado atual e movimento final.
+# Atualiza input, status, gravidade, estado atual e movimento final.
 # =============================================================================
 
 func _physics_process(delta: float) -> void:
 	_update_movement_input()
+	status_manager.update_status(delta)
 	_apply_gravity(delta)
 	movement_state_machine.physics_update(delta)
 	move_and_slide()
@@ -68,7 +73,7 @@ func _physics_process(delta: float) -> void:
 # =============================================================================
 # INPUT | LEITURA DO MOVIMENTO
 # -----------------------------------------------------------------------------
-# Lê movimento, sprint, stealth e calcula direção baseada na câmera.
+# Lê movimento, sprint, stealth, aim e calcula direção baseada na câmera.
 # =============================================================================
 
 func _update_movement_input() -> void:
@@ -82,6 +87,7 @@ func _update_movement_input() -> void:
 	is_jump_requested = Input.is_action_just_pressed("jump")
 	is_sprint_pressed = Input.is_action_pressed("sprint")
 	is_stealth_pressed = Input.is_action_pressed("stealth")
+	is_aim_pressed = Input.is_action_pressed("aim")
 
 	movement_direction = Vector3.ZERO
 
@@ -141,6 +147,20 @@ func apply_horizontal_movement(target_speed: float, delta: float) -> void:
 
 	if movement_direction != Vector3.ZERO:
 		_rotate_model_towards(movement_direction, delta)
+
+
+# =============================================================================
+# STAMINA | CORRIDA
+# -----------------------------------------------------------------------------
+# Consulta e consome stamina para controlar se o sprint pode acontecer.
+# =============================================================================
+
+func can_sprint() -> bool:
+	return status_manager.can_start_sprint()
+
+
+func consume_sprint_stamina(delta: float) -> bool:
+	return status_manager.consume_sprint_stamina(delta)
 
 
 # =============================================================================

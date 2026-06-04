@@ -118,24 +118,68 @@ func is_idle() -> bool:
 	return is_current_state(&"Idle")
 
 
+func is_idle_jumping() -> bool:
+	return is_current_state(&"IdleJump")
+
+
+func is_idle_falling() -> bool:
+	return is_current_state(&"IdleFall")
+
+
 func is_walking() -> bool:
 	return is_current_state(&"Walk")
+
+
+func is_walk_jumping() -> bool:
+	return is_current_state(&"WalkJump")
+
+
+func is_walk_falling() -> bool:
+	return is_current_state(&"WalkFall")
 
 
 func is_sprinting() -> bool:
 	return is_current_state(&"Sprint")
 
 
+func is_sprint_jumping() -> bool:
+	return is_current_state(&"SprintJump")
+
+
+func is_sprint_falling() -> bool:
+	return is_current_state(&"SprintFall")
+
+
 func is_stealthing() -> bool:
 	return is_current_state(&"Stealth")
 
 
+func is_aim_idle() -> bool:
+	return is_current_state(&"AimIdle")
+
+
+func is_aim_walking() -> bool:
+	return is_current_state(&"AimWalk")
+
+
+func is_aim_stealthing() -> bool:
+	return is_current_state(&"AimStealth")
+
+
+func is_aiming() -> bool:
+	return is_aim_idle() or is_aim_walking() or is_aim_stealthing()
+
+
 func is_jumping() -> bool:
-	return is_current_state(&"Jump")
+	return is_idle_jumping() or is_walk_jumping() or is_sprint_jumping()
 
 
 func is_falling() -> bool:
-	return is_current_state(&"Fall")
+	return is_idle_falling() or is_walk_falling() or is_sprint_falling()
+
+
+func is_air_movement() -> bool:
+	return is_jumping() or is_falling()
 
 
 func get_state_name() -> StringName:

@@ -2,24 +2,22 @@ extends PlayerMovementState
 
 
 # =============================================================================
-# STATE | WALK
+# STATE | WALK FALL
 # -----------------------------------------------------------------------------
-# Estado de caminhada normal no chão.
+# Queda iniciada andando. Mantém comportamento de walk até tocar o chão.
 # =============================================================================
 
 func physics_update(delta: float) -> void:
 	player.apply_horizontal_movement(player.walk_speed, delta)
 
-	if player.should_jump():
-		state_machine.change_state(&"WalkJump")
-		return
-
 	if not player.is_on_floor():
-		state_machine.change_state(&"WalkFall")
 		return
 
 	if player.is_aim_pressed:
-		state_machine.change_state(&"AimStealth" if player.is_stealth_pressed else &"AimWalk")
+		if player.has_movement_input():
+			state_machine.change_state(&"AimWalk")
+		else:
+			state_machine.change_state(&"AimIdle")
 		return
 
 	if player.is_stealth_pressed:
@@ -32,3 +30,5 @@ func physics_update(delta: float) -> void:
 
 	if player.is_sprint_pressed and player.can_sprint():
 		state_machine.change_state(&"Sprint")
+	else:
+		state_machine.change_state(&"Walk")

@@ -2,9 +2,9 @@ extends PlayerMovementState
 
 
 # =============================================================================
-# STATE | JUMP
+# STATE | WALK JUMP
 # -----------------------------------------------------------------------------
-# Estado de subida após o pulo.
+# Pulo iniciado andando ou em aim walk. Mantém comportamento de walk no ar.
 # =============================================================================
 
 func enter() -> void:
@@ -16,4 +16,4 @@ func physics_update(delta: float) -> void:
 	player.apply_horizontal_movement(player.walk_speed, delta)
 
 	if player.velocity.y <= 0.0:
-		state_machine.change_state(&"Fall")
+		state_machine.change_state(&"WalkFall")

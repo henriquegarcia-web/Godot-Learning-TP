@@ -2,26 +2,29 @@ extends PlayerMovementState
 
 
 # =============================================================================
-# STATE | STEALTH
+# STATE | IDLE FALL
 # -----------------------------------------------------------------------------
-# Estado furtivo. Não permite pulo e, ao sair do chão, vai para IdleFall.
+# Queda iniciada parada ou saída forçada de stealth no ar.
 # =============================================================================
 
 func physics_update(delta: float) -> void:
-	player.apply_horizontal_movement(player.stealth_speed, delta)
+	player.apply_horizontal_movement(0.0, delta)
 
 	if not player.is_on_floor():
-		state_machine.change_state(&"IdleFall")
 		return
 
 	if player.is_aim_pressed:
-		state_machine.change_state(&"AimStealth")
+		state_machine.change_state(&"AimIdle")
 		return
 
-	if not player.is_stealth_pressed:
-		if not player.has_movement_input():
-			state_machine.change_state(&"Idle")
-		elif player.is_sprint_pressed and player.can_sprint():
+	if player.is_stealth_pressed:
+		state_machine.change_state(&"Stealth")
+		return
+
+	if player.has_movement_input():
+		if player.is_sprint_pressed and player.can_sprint():
 			state_machine.change_state(&"Sprint")
 		else:
 			state_machine.change_state(&"Walk")
+	else:
+		state_machine.change_state(&"Idle")

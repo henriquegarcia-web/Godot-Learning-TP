@@ -2,13 +2,13 @@ extends PlayerMovementState
 
 
 # =============================================================================
-# STATE | WALK
+# STATE | AIM WALK
 # -----------------------------------------------------------------------------
-# Estado de caminhada normal no chão.
+# Estado andando enquanto mira. Usa velocidade reduzida e zoom menos fechado.
 # =============================================================================
 
 func physics_update(delta: float) -> void:
-	player.apply_horizontal_movement(player.walk_speed, delta)
+	player.apply_horizontal_movement(player.aim_walk_speed, delta)
 
 	if player.should_jump():
 		state_machine.change_state(&"WalkJump")
@@ -18,17 +18,18 @@ func physics_update(delta: float) -> void:
 		state_machine.change_state(&"WalkFall")
 		return
 
-	if player.is_aim_pressed:
-		state_machine.change_state(&"AimStealth" if player.is_stealth_pressed else &"AimWalk")
+	if not player.is_aim_pressed:
+		if not player.has_movement_input():
+			state_machine.change_state(&"Idle")
+		elif player.is_stealth_pressed:
+			state_machine.change_state(&"Stealth")
+		else:
+			state_machine.change_state(&"Walk")
 		return
 
 	if player.is_stealth_pressed:
-		state_machine.change_state(&"Stealth")
+		state_machine.change_state(&"AimStealth")
 		return
 
 	if not player.has_movement_input():
-		state_machine.change_state(&"Idle")
-		return
-
-	if player.is_sprint_pressed and player.can_sprint():
-		state_machine.change_state(&"Sprint")
+		state_machine.change_state(&"AimIdle")

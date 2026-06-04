@@ -4,18 +4,26 @@ extends PlayerMovementState
 # =============================================================================
 # STATE | SPRINT
 # -----------------------------------------------------------------------------
-# Estado de corrida. Bloqueia zoom e ativa afastamento da câmera.
+# Estado de corrida. Consome stamina, bloqueia zoom e usa câmera de velocidade.
 # =============================================================================
 
 func physics_update(delta: float) -> void:
+	if not player.consume_sprint_stamina(delta):
+		state_machine.change_state(&"Walk")
+		return
+
 	player.apply_horizontal_movement(player.sprint_speed, delta)
 
 	if player.should_jump():
-		state_machine.change_state(&"Jump")
+		state_machine.change_state(&"SprintJump")
 		return
 
 	if not player.is_on_floor():
-		state_machine.change_state(&"Fall")
+		state_machine.change_state(&"SprintFall")
+		return
+
+	if player.is_aim_pressed:
+		state_machine.change_state(&"AimWalk")
 		return
 
 	if player.is_stealth_pressed:

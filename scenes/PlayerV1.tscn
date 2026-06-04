@@ -3,12 +3,20 @@
 [ext_resource type="Script" uid="uid://dg6ckcoimqwn3" path="res://scripts/player_controller.gd" id="1_arwpk"]
 [ext_resource type="Script" uid="uid://bv2o4tnpeqdb7" path="res://scripts/camera_controller.gd" id="2_mjwi7"]
 [ext_resource type="Script" uid="uid://bgl6l5ikhtp5k" path="res://scripts/state_machine/player_movement_state_machine.gd" id="3_cemdl"]
-[ext_resource type="Script" uid="uid://cmjrq0x7vycmo" path="res://scripts/states/idle.gd" id="4_s5wcu"]
+[ext_resource type="Script" uid="uid://gehiwgcvr627" path="res://scripts/states/idle.gd" id="4_s5wcu"]
+[ext_resource type="Script" uid="uid://cduqcaf38bksg" path="res://scripts/states/idle_jump.gd" id="5_ipi04"]
 [ext_resource type="Script" uid="uid://tjlbu48ytsb8" path="res://scripts/states/walk.gd" id="5_kvolm"]
 [ext_resource type="Script" uid="uid://b8erjr8rdmnm8" path="res://scripts/states/sprint.gd" id="6_2qbuf"]
+[ext_resource type="Script" uid="uid://cuu3jjc7dt5fb" path="res://scripts/states/idle_fall.gd" id="6_kprmk"]
 [ext_resource type="Script" uid="uid://trc58bh51yn7" path="res://scripts/states/stealth.gd" id="7_iemd8"]
-[ext_resource type="Script" uid="uid://cyp15xc73e5pa" path="res://scripts/states/jump.gd" id="8_b4pbf"]
-[ext_resource type="Script" uid="uid://csdpdl28m61j3" path="res://scripts/states/fall.gd" id="9_nuc4e"]
+[ext_resource type="Script" uid="uid://bll6efud0ph6r" path="res://scripts/states/walk_jump.gd" id="8_ggy0t"]
+[ext_resource type="Script" uid="uid://dqisp2pdatn7t" path="res://scripts/states/walk_fall.gd" id="9_ek331"]
+[ext_resource type="Script" uid="uid://b2ca052ujv6fq" path="res://scripts/states/aim_idle.gd" id="10_b4pbf"]
+[ext_resource type="Script" uid="uid://b2c6im1taq3sg" path="res://scripts/player_status_manager.gd" id="10_kvolm"]
+[ext_resource type="Script" uid="uid://3dqlmm8mlgym" path="res://scripts/states/aim_walk.gd" id="11_nuc4e"]
+[ext_resource type="Script" uid="uid://bgoylfnirkbh8" path="res://scripts/states/aim_stealth.gd" id="12_da7fy"]
+[ext_resource type="Script" uid="uid://dchcunkbn6824" path="res://scripts/states/sprint_jump.gd" id="13_da7fy"]
+[ext_resource type="Script" uid="uid://3cj1wvbywrhj" path="res://scripts/states/sprint_fall.gd" id="14_setlc"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_81ok0"]
 
@@ -50,20 +58,44 @@ current = true
 [node name="StateMachine" type="Node" parent="." unique_id=1596660505]
 script = ExtResource("3_cemdl")
 
-[node name="Idle" type="Node" parent="StateMachine" unique_id=1190779820]
+[node name="Idle" type="Node" parent="StateMachine" unique_id=1861883641]
 script = ExtResource("4_s5wcu")
 
-[node name="Walk" type="Node" parent="StateMachine" unique_id=1495157427]
+[node name="IdleJump" type="Node" parent="StateMachine" unique_id=1628877342]
+script = ExtResource("5_ipi04")
+
+[node name="IdleFall" type="Node" parent="StateMachine" unique_id=1688593134]
+script = ExtResource("6_kprmk")
+
+[node name="Walk" type="Node" parent="StateMachine" unique_id=1814539224]
 script = ExtResource("5_kvolm")
 
-[node name="Sprint" type="Node" parent="StateMachine" unique_id=692480904]
+[node name="WalkJump" type="Node" parent="StateMachine" unique_id=1155821679]
+script = ExtResource("8_ggy0t")
+
+[node name="WalkFall" type="Node" parent="StateMachine" unique_id=392260730]
+script = ExtResource("9_ek331")
+
+[node name="Sprint" type="Node" parent="StateMachine" unique_id=1583228095]
 script = ExtResource("6_2qbuf")
 
-[node name="Stealth" type="Node" parent="StateMachine" unique_id=877391842]
+[node name="SprintJump" type="Node" parent="StateMachine" unique_id=495121469]
+script = ExtResource("13_da7fy")
+
+[node name="SprintFall" type="Node" parent="StateMachine" unique_id=143104946]
+script = ExtResource("14_setlc")
+
+[node name="Stealth" type="Node" parent="StateMachine" unique_id=227175655]
 script = ExtResource("7_iemd8")
 
-[node name="Jump" type="Node" parent="StateMachine" unique_id=703379833]
-script = ExtResource("8_b4pbf")
+[node name="AimIdle" type="Node" parent="StateMachine" unique_id=681398034]
+script = ExtResource("10_b4pbf")
 
-[node name="Fall" type="Node" parent="StateMachine" unique_id=13318369]
-script = ExtResource("9_nuc4e")
+[node name="AimWalk" type="Node" parent="StateMachine" unique_id=1193224134]
+script = ExtResource("11_nuc4e")
+
+[node name="AimStealth" type="Node" parent="StateMachine" unique_id=1521550861]
+script = ExtResource("12_da7fy")
+
+[node name="StatusManager" type="Node" parent="." unique_id=502645992]
+script = ExtResource("10_kvolm")

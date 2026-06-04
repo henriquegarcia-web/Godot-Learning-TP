@@ -35,7 +35,7 @@ extends Node3D
 
 @export_group("Camera Zoom")
 @export var zoom_enabled: bool = true
-@export var zoom_focus_distance: float = 3.5
+@export var zoom_focus_distance: float = 3.25
 @export var zoom_walk_distance: float = 3.75
 @export var zoom_fov: float = 55.0
 @export var normal_fov: float = 70.0
@@ -44,14 +44,13 @@ extends Node3D
 # =============================================================================
 # EXPORTS | DISTANCIAMENTO DA CÂMERA AO CORRER
 # -----------------------------------------------------------------------------
-# Ao correr de verdade, a câmera se afasta e aumenta o FOV, criando o efeito
-# inverso do zoom. A lógica só ativa se houver sprint + movimento real.
+# Ao correr, a câmera se afasta e aumenta o FOV para sensação de velocidade.
 # =============================================================================
 
 @export_group("Camera Sprint Distance")
 @export var sprint_camera_enabled: bool = true
-@export var sprint_camera_distance: float = 4.5
-@export var sprint_camera_fov: float = 78.0
+@export var sprint_camera_distance: float = 4
+@export var sprint_camera_fov: float = 80.0
 @export var sprint_camera_speed: float = 10.0
 
 # Velocidade horizontal mínima para considerar que o player está realmente se movendo.
@@ -179,21 +178,18 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("camera_right"):
 		_set_camera_shoulder(1.0)
 
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_RIGHT:
-			is_zooming = event.pressed
-
 	if event.is_action_pressed("ui_cancel"):
 		_toggle_mouse_capture()
 
 # =============================================================================
 # LOOP | ATUALIZAÇÃO DA CÂMERA
 # -----------------------------------------------------------------------------
-# Atualiza rotação, efeitos de distância/FOV, ombro, colisão e visibilidade
-# do modelo.
+# Atualiza rotação, zoom/sprint, ombro, colisão e visibilidade do modelo.
 # =============================================================================
 
 func _process(delta: float) -> void:
+	is_zooming = Input.is_action_pressed("aim")
+
 	_update_camera_rotation(delta)
 	_update_camera_distance_effects(delta)
 	_update_camera_shoulder(delta)
@@ -225,11 +221,11 @@ func _update_camera_rotation(_delta: float) -> void:
 # =============================================================================
 # CÂMERA | EFEITOS DE DISTÂNCIA E FOV
 # -----------------------------------------------------------------------------
-# Controla aproximação por zoom e afastamento ao correr.
+# Controla zoom manual e afastamento com FOV ao correr.
 #
 # Prioridade:
-# 1. Distanciamento automático ao correr.
-# 2. Zoom manual se não estiver correndo.
+# 1. Sprint altera distância e FOV.
+# 2. Zoom funciona em idle, walk e stealth.
 # 3. Estado normal.
 # =============================================================================
 
@@ -277,7 +273,16 @@ func _get_zoom_target_distance() -> float:
 	if movement_state_machine.is_stealthing():
 		return zoom_focus_distance
 
+	if movement_state_machine.is_aim_idle():
+		return zoom_focus_distance
+
+	if movement_state_machine.is_aim_stealthing():
+		return zoom_focus_distance
+
 	if movement_state_machine.is_walking():
+		return zoom_walk_distance
+
+	if movement_state_machine.is_aim_walking():
 		return zoom_walk_distance
 
 	return zoom_focus_distance
@@ -285,14 +290,16 @@ func _get_zoom_target_distance() -> float:
 # =============================================================================
 # CÂMERA | DETECÇÃO DE CORRIDA REAL
 # -----------------------------------------------------------------------------
-# Consulta a StateMachine para bloquear zoom e aplicar afastamento ao correr.
+# Consulta a StateMachine para bloquear zoom e aplicar afastamento de sprint.
 # =============================================================================
 
 func _is_player_actually_sprinting() -> bool:
 	if movement_state_machine == null:
 		return false
 
-	return movement_state_machine.is_sprinting()
+	return movement_state_machine.is_sprinting() \
+		or movement_state_machine.is_sprint_jumping() \
+		or movement_state_machine.is_sprint_falling()
 
 # =============================================================================
 # CÂMERA | OMBRO
